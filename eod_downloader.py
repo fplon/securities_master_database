@@ -33,7 +33,8 @@ def get_db_exchanges():
             'currency', 
             'created_date', 
             'last_updated_date',
-            'last_price_update_date'
+            'last_price_update_date',
+            'last_fundamental_update_date'
         ]
     )
     db_exchanges_df.set_index('id', inplace = True)
@@ -80,7 +81,16 @@ def get_db_indices():
     
     db_indices_df = pd.DataFrame(
         data, 
-        columns = ['id', 'short_name', 'name', 'city', 'country', 'timezone_offset', 'created_date', 'last_updated_date']
+        columns = [
+            'id', 
+            'short_name', 
+            'name', 
+            'city', 
+            'country', 
+            'timezone_offset', 
+            'created_date', 
+            'last_updated_date'
+        ]
     )
     db_indices_df.set_index('id', inplace = True)
     
@@ -104,7 +114,16 @@ def get_db_instruments(exchange_id = None):
     
     cur.execute(command)
     data = cur.fetchall()
-    cols = ['id', 'exchange_id', 'ticker', 'instrument_type', 'name', 'currency', 'created_date', 'last_updated_date']
+    cols = [
+        'id', 
+        'exchange_id', 
+        'ticker', 
+        'instrument_type', 
+        'name', 
+        'currency', 
+        'created_date', 
+        'last_updated_date'
+    ]
     
     db_instruments_df = pd.DataFrame(
         data, 
@@ -206,7 +225,10 @@ def get_eod_bulk_price(ex, e_date = e_date):
     ???df : pandas dataframe 
     '''
     
-    url = f'http://eodhistoricaldata.com/api/eod-bulk-last-day/{ex}?api_token={api}&fmt=json&date={e_date}'
+    url = (
+        f'http://eodhistoricaldata.com/api/eod-bulk-last-day/{ex}'
+        f'?api_token={api}&fmt=json&date={e_date}'
+    )
 
     response = requests.get(url)
     data = response.text
@@ -338,7 +360,10 @@ def get_eod_instruments(exchange = 'INDX', format = 'df'):
     valid_formats = ['json', 'df']
     if format in valid_formats: 
 
-        url = f'https://eodhistoricaldata.com/api/exchange-symbol-list/{exchange}?api_token={api}&fmt=json'
+        url = (
+            f'https://eodhistoricaldata.com/api/exchange-symbol-list/{exchange}'
+            f'?api_token={api}&fmt=json'
+       )
         response = requests.get(url)
         data = response.text
         
@@ -417,8 +442,12 @@ def eod_bulk_prices_to_db(eod_bulk_prices_df, exch_id, data_vendor_id):
             adj_close_price = row['adjusted_close']
             volume = row['volume']
             
-            vals = (f"'{data_vendor_id}', '{instrument_id}', '{price_date}', '{now}', '{now}', '{open_price}', "
-                    f"'{high_price}', '{low_price}', '{close_price}', '{adj_close_price}', '{volume}'")
+            vals = (
+                f"'{data_vendor_id}', '{instrument_id}', '{price_date}', "
+                f"'{now}', '{now}', '{open_price}', "
+                f"'{high_price}', '{low_price}', '{close_price}', "
+                f"'{adj_close_price}', '{volume}'"
+            )
             command = f'INSERT INTO daily_price ({cols}) VALUES ({vals})' 
             cur.execute(command)
         except:
@@ -436,7 +465,10 @@ def eod_constituents_to_db(eod_constituents_df, index_id):
     cur = con.cursor()
     
     now = dt.datetime.now().strftime('%Y-%m-%d')
-    command = f'SELECT date FROM benchmark_index_member WHERE index_id = {index_id} ORDER BY date DESC LIMIT 1'
+    command = (
+        f'SELECT date FROM benchmark_index_member WHERE index_id = {index_id} '
+        f'ORDER BY date DESC LIMIT 1'
+    )
     cur.execute(command)
     data = cur.fetchall()
     
@@ -467,7 +499,7 @@ def eod_exchanges_to_db(eod_exchanges_df, db_exchanges_df):
     cur = con.cursor()
     
     now = dt.datetime.now().strftime('%Y-%m-%d')
-    cols = 'code, name, short_name, country, currency, created_date, last_update_date' # won't need created_date everytime
+    cols = 'code, name, short_name, country, currency, created_date, last_update_date' 
 
     new_exchanges = [ex for ex in eod_exchanges_df['Code'] if ex not in db_exchanges_df['code'].values]
     exchanges_df = eod_exchanges_df[eod_exchanges_df['Code'].isin(new_exchanges)]
@@ -506,7 +538,7 @@ def eod_index_to_db(info_df):
     
     code, name, country = str(info_df['Code']), str(info_df['Name']), str(info_df['CountryName'])
     now = dt.datetime.now().strftime('%Y-%m-%d')
-    cols = 'short_name, name, country, created_date, last_updated_date' # won't need created_date everytime
+    cols = 'short_name, name, country, created_date, last_updated_date' 
     vals = f"'{code}', '{name}', '{country}', '{now}', '{now}'"
     
     command = f'INSERT INTO benchmark_index ({cols}) VALUES ({vals})' 
@@ -527,7 +559,9 @@ def eod_instruments_to_db(eod_instruments_df, db_instruments_df, db_exchange_id)
         now = dt.datetime.now().strftime('%Y-%m-%d')
         cols = ('exchange_id, ticker, instrument_type, name, currency, created_date, last_update_date') 
     
-        missing_tickers = [t for t in eod_instruments_df['Code'] if t not in db_instruments_df['ticker'].values]
+        missing_tickers = [
+            t for t in eod_instruments_df['Code'] if t not in db_instruments_df['ticker'].values
+        ]
         instruments_df = eod_instruments_df[eod_instruments_df['Code'].isin(missing_tickers)]
         
         # upload new instruments to 'symbols' table in SMDB
@@ -537,7 +571,10 @@ def eod_instruments_to_db(eod_instruments_df, db_instruments_df, db_exchange_id)
             name = str(row['Name']).replace("'", "\'\'")
             currency = str(row['Currency'])
             instrument_type = str(row['Type'])
-            vals = (f"'{db_exchange_id}', '{ticker}', '{instrument_type}', '{name}', '{currency}', '{now}', '{now}'")
+            vals = (
+                f"'{db_exchange_id}', '{ticker}', '{instrument_type}', "
+                "'{name}', '{currency}', '{now}', '{now}'"
+            )
             command = f'INSERT INTO instrument ({cols}) VALUES ({vals})' 
             cur.execute(command)
     
@@ -556,7 +593,10 @@ def eod_prices_to_db(eod_prices_df, db_prices_df, instrument_id, data_vendor_id)
     cols = ('data_vendor_id, instrument_id, price_date, created_date, last_updated_date, '
             'open_price, high_price, low_price, close_price, adj_close_price, volume')
 
-    # new_prices = [p.strftime('%Y-%m-%d') for p in eod_prices_df.index if p not in db_prices_df['price_date'].values] 
+    # new_prices = [
+    #     p.strftime('%Y-%m-%d') for p in eod_prices_df.index 
+    #     if p not in db_prices_df['price_date'].values
+    # ] 
     prices_df = eod_prices_df#[eod_prices_df.index.isin(new_prices)]
     
     # upload new exchanges to 'exchange' table in SMDB
@@ -570,8 +610,12 @@ def eod_prices_to_db(eod_prices_df, db_prices_df, instrument_id, data_vendor_id)
             adj_close_price = row['adjusted_close']
             volume = row['volume']
             
-            vals = (f"'{data_vendor_id}', '{instrument_id}', '{price_date}', '{now}', '{now}', '{open_price}', "
-                    f"'{high_price}', '{low_price}', '{close_price}', '{adj_close_price}', '{volume}'")
+            vals = (
+                f"'{data_vendor_id}', '{instrument_id}', '{price_date}', "
+                f"'{now}', '{now}', '{open_price}', "
+                f"'{high_price}', '{low_price}', '{close_price}', "
+                f"'{adj_close_price}', '{volume}'"
+            )
             command = f'INSERT INTO daily_price ({cols}) VALUES ({vals})' 
             cur.execute(command)
         except: 
@@ -654,8 +698,10 @@ def db_update_prices():
     # db_exchanges_df = db_exchanges_df.loc[2, :].to_frame().T # Same again for LSE listed companies
     # db_exchanges_df = db_exchanges_df.loc[68, :].to_frame().T # Same again for Indices
     # db_exchanges_df = db_exchanges_df.loc[75, :].to_frame().T # Same again for TSE listed companies
-    db_exchanges_df = db_exchanges_df.loc[64, :].to_frame().T # Same again for EUFUND
+    # db_exchanges_df = db_exchanges_df.loc[64, :].to_frame().T # Same again for EUFUND
+    db_exchanges_df = db_exchanges_df.loc[1, :].to_frame().T # Same again for US listed companies
     
+    y = 0
     for exch_id, exch_data in db_exchanges_df.iterrows(): 
         db_instruments_df = get_db_instruments(exch_id)
         
@@ -663,17 +709,19 @@ def db_update_prices():
             db_fund_watchlist_df = get_db_fund_watchlist()
             db_instruments_df = db_instruments_df.loc[db_fund_watchlist_df['instrument_id'].values, :]
         
-        percent_done = round(((exch_id - 1)/ db_exchanges_df.shape[0]) * 100, 2)
+        
+        percent_done = round(((y)/ db_exchanges_df.shape[0]) * 100, 2)
         print(f'Part 3: {percent_done}% complete. Working on prices for Exchange: {exch_data["code"]}.')
         
         last_price_list = []
-        for instrument_id, instrument_data in db_instruments_df.iterrows():
+        x = 0
+        for instrument_id, instrument_data in db_instruments_df.iloc[4129:, :].iterrows():
 
             # db_prices_df = get_db_price(instrument_id)
             
-            x = db_instruments_df.index.get_loc(instrument_id)
+            
             sub_percent_done = round((x / db_instruments_df.shape[0]) * 100, 2)
-            print(f'\t{sub_percent_done}% complete. {instrument_data["ticker"]} uploaded.')
+            print(f'\t{sub_percent_done}% complete. {instrument_data["ticker"]} uploading.')
             
             ## This is where using the SMDB index will be useful
             
@@ -686,17 +734,21 @@ def db_update_prices():
             start_date = dt.date(1900, 1, 1) ## TEMP SOLUTION
             
             if start_date < (dt.date.today() -  dt.timedelta(1)):
-                eod_prices_df = get_eod_price(instrument_data['ticker'], exch_data['code'], start_date.strftime('%Y-%m-%d'))
+                ticker = instrument_data['ticker']
+                exch_code = exch_data['code']
+                eod_prices_df = get_eod_price(ticker, exch_code, start_date.strftime('%Y-%m-%d'))
                 if eod_prices_df.shape[0] > 0: 
                     eod_prices_to_db(eod_prices_df, pd.DataFrame(),instrument_id, 1) ## TEMP SOLUTION
                     # eod_prices_to_db(eod_prices_df, db_prices_df, instrument_id, 1)
                     last_price_list.append(eod_prices_df.index[-1])
-                    
-                    
+            x += 1
+            
+        y += 1
         db_update_last_updated_date('daily_price', min(last_price_list), exch_id)
         print('\t100% complete.')
+    print('Part 3: 100% complete')
         
-        
+    
 def db_update_last_updated_date(updated_table_name, last_date, exchange_id):
     
     valid_table_names = ['daily_price', 'fundamental']
@@ -737,7 +789,10 @@ def db_update_bulk_prices(exchange_list = None):
         
         last_price_date = exch_data['last_price_update_date']
         if last_price_date == None:
-            print(f'No price data for {exch_code} exists in SMDB. Use different function to import prices.')
+            print(
+                f'No price data for {exch_code} exists in SMDB. '
+                'Use different function to import prices.'
+            )
             continue
         
         # use this date to get bulk prices
@@ -762,11 +817,14 @@ def db_update_bulk_prices(exchange_list = None):
                     print(f'{pct}% through {exch_code}. Working on {ticker}.')
                     
                     eod_adj_close = instrument['adjusted_close']
-                    db_adj_close = db_prices_df.loc[db_prices_df['ticker'] == ticker, 'adj_close_price']
+                    db_adj_close = db_prices_df.loc[
+                        db_prices_df['ticker'] == ticker, 'adj_close_price'
+                    ]
                     db_id = db_prices_df.loc[db_prices_df['ticker'] == ticker, 'instrument_id']
                     if (len(db_adj_close.values) < 1) | (len(db_id.values) < 1):
                         error_log.append(
-                            f'EOD price for {ticker} on {end_date} exists but not in DB. db_update_bulk_prices'
+                            f'EOD price for {ticker} on {end_date} exists but not in DB. '
+                            'db_update_bulk_prices'
                         )
                         continue
                     db_adj_close = float(db_adj_close.values[0])
@@ -778,7 +836,8 @@ def db_update_bulk_prices(exchange_list = None):
                         # db_update_adjusted_close(db_id, last_price_date, price_diff)
                         print('Price issue. Reloading price history.')
                         error_log.append(
-                            f'Issue with {ticker}.{exch_code}. Reloaded full price history. db_update_bulk_prices'
+                            f'Issue with {ticker}.{exch_code}. '
+                            'Reloaded full price history. db_update_bulk_prices'
                         )
                         remove_db_prices(db_id)
                         eod_prices_df = get_eod_price(ticker, exch_code)
@@ -788,7 +847,7 @@ def db_update_bulk_prices(exchange_list = None):
                 
             end_date = end_date - dt.timedelta(1)
         db_update_last_updated_date('daily_price', exch_update_date, exch_id)
-                
+    print('Bulk prices update 100% complete.')
 
 def remove_db_prices(instrument_id):
     
@@ -821,9 +880,42 @@ def db_update_adjusted_close(instrument_id, price_date, price_diff):
     cur.close()
     con.close()
     
+def db_update_fund_watchlist_data(exchange_id = 64): 
+    '''
+    The current watchlist length is less than 100 funds. The EOD bulk prices request uses 100
+    of the 100,000 available API calls. Therefore, it makes more sense just to make individual 
+    API calls for each fund, as long as the list is less than 100. 
+    
+    The process currently deletes the existing price history and updates the DB with a full
+    price time series for each fund. As the list grows, it may be more efficient to 
+    identify missing dates rather than completely removing and reloading each time series. 
+    This depends on the speed the missing dates can be identified from the DB. 
+
+    '''
     
     
+    db_fund_watchlist_df = get_db_fund_watchlist()
+    db_instruments_df = get_db_instruments(exchange_id)
+    db_instruments_df = db_instruments_df.loc[db_fund_watchlist_df['instrument_id'], :]
+    db_exchange_df = get_db_exchanges()
+    
+    x = 1
+    for instrument_id in db_fund_watchlist_df['instrument_id']:
+        print(f'Working on fund {x} of {db_fund_watchlist_df.shape[0]} funds in watchlist.')
+        try:
+            remove_db_prices(instrument_id)
+            ticker = db_instruments_df.loc[instrument_id, 'ticker']
+            exchange = db_exchange_df.loc[exchange_id, 'code']
+            eod_prices_df = get_eod_price(ticker, exchange)
+            eod_prices_to_db(eod_prices_df, pd.DataFrame(), instrument_id, 1)
+        except:
+            print('Could not process fund {ticker}')
+        x += 1
+    
+    db_update_last_updated_date('daily_price', eod_prices_df.index[-1], exchange_id)
+    print('100% complete.')
                     
+    
 def db_update_fundamentals(): 
     
     db_exchanges_df = get_db_exchanges()
@@ -832,7 +924,10 @@ def db_update_fundamentals():
         db_instruments_df = get_db_instruments(exch_id)
         
         percent_done = round(((exch_id - 1)/ db_exchanges_df.shape[0]) * 100, 2)
-        print(f'Part 4: {percent_done}% complete. Working on fundamentals for Exchange: {exch_data["code"]}.')
+        print(
+            f'Part 4: {percent_done}% complete. '
+            f'Working on fundamentals for Exchange: {exch_data["code"]}.'
+        )
         
         for instrument_id, instrument_data in db_instruments_df.iterrows():
             # db_fundamentals_df = get_db_fundamentals(instrument_id)
@@ -845,6 +940,141 @@ def db_update_fundamentals():
             
             eod_fundamentals_to_db(eod_fundamentals)
             
+            
+def db_update_company_general_info(exchange_list = None): 
+    
+    db_exchange_df = get_db_exchanges()
+    if exchange_list is not None: 
+        db_exchange_df = db_exchange_df.loc[exchange_list, :]
+    
+    for exch_id, exch_data in db_exchange_df.iterrows(): 
+        
+        # filter instruments to only `Common Stock`
+        db_instruments_df = get_db_instruments(exch_id)
+        db_instruments_df = db_instruments_df[
+            db_instruments_df['instrument_type'] == 'Common Stock'
+        ]
+        exch_code = exch_data['code']
+        
+        # call function to load info to SMDB
+        # the check for existing data is performed within the below
+        eod_company_general_info_to_db(db_instruments_df, exch_id, exch_code)
+        
+        db_update_last_updated_date('fundamental', e_date, exch_id)
+        
+            
+    
+def eod_company_general_info_to_db(db_instruments_df, exch_id, exch_code):
+    
+    con = pg.connect(database = 'securities_master', user = 'postgres')
+    cur = con.cursor()
+    now = dt.datetime.now().strftime('%Y-%m-%d')
+    
+    db_company_general_info_df = get_db_company_general_info()#exch_id)
+    
+    x = 0
+    for inst_id, inst_data in db_instruments_df.iterrows():
+        
+        ticker = inst_data['ticker']
+        pct = round(x / db_instruments_df.shape[0] * 100, 2)
+        print(f'\t{pct}% complete. Uploading data for {ticker}.')
+        
+        try:
+            eod_fundamentals_dict = get_eod_fundamentals(ticker, exch_code)
+            
+            eod_fields = [
+                'ISIN', 
+                'GicSector', 
+                'GicGroup', 
+                'GicIndustry',
+                'GicSubIndustry',
+                'City', 
+                'Country', 
+                'ZIP'
+            ]
+            
+            eod_data = [inst_id]
+            
+            for field in eod_fields:
+                try:
+                    value = eod_fundamentals_dict['General'][field]
+                    eod_data.append(value)
+                except: 
+                    eod_data.append('Unknown')
+            
+            # check the SMDB for existing data
+            db_data = db_company_general_info_df[
+                db_company_general_info_df['instrument_id'] == inst_id
+            ]
+            
+            if db_data.values.tolist() != eod_data:
+            
+                cols = (
+                    'instrument_id, isin, gic_sector, gic_group, gic_industry, '
+                    'gic_subindustry, city, country, zip, created_date, last_update_date' 
+                )
+                vals = (
+                    f"'{eod_data[0]}', '{eod_data[1]}', '{eod_data[2]}', '{eod_data[3]}', "
+                    f"'{eod_data[4]}', '{eod_data[5]}', '{eod_data[6]}', '{eod_data[7]}', "
+                    f"'{eod_data[8]}', '{now}', '{now}'"
+                )
+                command = f'INSERT INTO company_general_info ({cols}) VALUES ({vals})'
+                cur.execute(command)
+                x += 1
+            
+        except: 
+            print(f'/tError getting fundamentals data for {ticker}.')
+            error_log.append(
+                f'Error getting fundamentals data for {ticker}. '
+                f'Function: eod_company_general_info_to_db'
+            )
+        
+    print('\t100% complete.')          
+    con.commit()
+        
+    cur.close()
+    con.close()    
+    
+
+def get_db_company_general_info(exch_id = None):
+    
+    con = pg.connect(database = 'securities_master', user = 'postgres')
+    cur = con.cursor()
+    
+    if exch_id is not None: 
+        exchange_sql = f' WHERE exchange_id = {exch_id}'
+    else:
+        exchange_sql = ''
+    
+    
+    command = f'SELECT * FROM company_general_info{exchange_sql}'
+    cur.execute(command)
+    data = cur.fetchall()
+    
+    db_exchanges_df = pd.DataFrame(
+        data, 
+        columns = [
+            'id', 
+            'instrument_id', 
+            'isin', 
+            'gic_sector', 
+            'gic_group', 
+            'gic_industry', 
+            'gic_subindustry', 
+            'city', 
+            'country', 
+            'zip', 
+            'created_date', 
+            'last_updated_date'
+        ]
+    )
+    db_exchanges_df.set_index('id', inplace = True)
+    
+    cur.close()
+    con.close()
+    
+    return db_exchanges_df
+    
             
 def error_log_file_creation():
     
@@ -865,16 +1095,15 @@ if __name__ == '__main__':
     
     # db_update_instruments()
     # db_update_index_constituents()
-    # db_update_bulk_prices(exchange_list = [2, 8, 68, ])#75])
-    db_update_prices()
+    # db_update_bulk_prices(exchange_list = [2, 8, 68])
+    # db_update_fund_watchlist_data()
+    db_update_company_general_info(exchange_list = [2, 8])
+
+    
+    # db_update_prices()
     # db_update_fundamentals()
+            
+    
     
     error_log_file_creation()
-    
-    
-
-    
-    
-
-            
         
