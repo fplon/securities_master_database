@@ -4,19 +4,18 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import psycopg2 as pg
-import pymongo as pm
 import os
+import logging
 
-import eod_api
+from config.eod_config import API_KEY as api
+from config.db_config import CONN_CONF as conn_config
 
-api = eod_api.api
 e_date = (dt.datetime.now() - dt.timedelta(1)).strftime('%Y-%m-%d')
-error_log = []
 
 
 def get_db_exchanges():
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     command = 'SELECT * FROM exchange'
@@ -52,7 +51,7 @@ def get_db_fundamentals(instrument_id):
 
 def get_db_fund_watchlist():
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     command = 'SELECT * FROM fund_watchlist'
@@ -73,7 +72,7 @@ def get_db_fund_watchlist():
 
 def get_db_indices(): 
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     command = 'SELECT * FROM benchmark_index'
@@ -103,7 +102,7 @@ def get_db_indices():
 
 def get_db_instruments(exchange_id = None):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     if exchange_id == None: 
@@ -141,7 +140,7 @@ def get_db_instruments(exchange_id = None):
 
 def get_db_price(instrument_id = None, price_date = None, include_ticker = False):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     cols = [
@@ -411,7 +410,7 @@ def get_eod_price(sec, ex, s_date = '1900-01-01'):
     
 def eod_bulk_prices_to_db(eod_bulk_prices_df, exch_id, data_vendor_id):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     command = (f'select instrument.id, instrument.ticker, exchange.code '
@@ -462,7 +461,7 @@ def eod_bulk_prices_to_db(eod_bulk_prices_df, exch_id, data_vendor_id):
 
 def eod_constituents_to_db(eod_constituents_df, index_id):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     now = dt.datetime.now().strftime('%Y-%m-%d')
@@ -496,11 +495,11 @@ def eod_constituents_to_db(eod_constituents_df, index_id):
     
 def eod_exchanges_to_db(eod_exchanges_df, db_exchanges_df):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     now = dt.datetime.now().strftime('%Y-%m-%d')
-    cols = 'code, name, short_name, country, currency, created_date, last_update_date' 
+    cols = 'code, name, short_name, country, currency, created_date, last_update_date, last_price_update_date, last_fundamental_update_date' 
 
     new_exchanges = [ex for ex in eod_exchanges_df['Code'] if ex not in db_exchanges_df['code'].values]
     exchanges_df = eod_exchanges_df[eod_exchanges_df['Code'].isin(new_exchanges)]
@@ -513,7 +512,7 @@ def eod_exchanges_to_db(eod_exchanges_df, db_exchanges_df):
         country = str(row['Country'])
         currency = str(row['Currency'])
         
-        vals = f"'{code}', '{name}', '{short_name}', '{country}', '{currency}', '{now}', '{now}'"
+        vals = f"'{code}', '{name}', '{short_name}', '{country}', '{currency}', '{now}', '{now}', '{now}', '{now}'"
         command = f'INSERT INTO exchange ({cols}) VALUES ({vals})' 
         cur.execute(command)
     
@@ -534,7 +533,7 @@ def eod_fundamentals_to_db(eod_fundamentals):
     
 def eod_index_to_db(info_df):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     code, name, country = str(info_df['Code']), str(info_df['Name']), str(info_df['CountryName'])
@@ -554,7 +553,7 @@ def eod_index_to_db(info_df):
 def eod_instruments_to_db(eod_instruments_df, db_instruments_df, db_exchange_id):
     
     if eod_instruments_df.shape[0] > 0: 
-        con = pg.connect(database = 'securities_master', user = 'postgres')
+        con = pg.connect(**conn_config)
         cur = con.cursor()
         
         now = dt.datetime.now().strftime('%Y-%m-%d')
@@ -587,7 +586,7 @@ def eod_instruments_to_db(eod_instruments_df, db_instruments_df, db_exchange_id)
 
 def eod_prices_to_db(eod_prices_df, db_prices_df, instrument_id, data_vendor_id):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     now = dt.datetime.now().strftime('%Y-%m-%d')
@@ -760,7 +759,7 @@ def db_update_last_updated_date(updated_table_name, last_date, exchange_id):
         print('Table does not exist. No update was completed.')
         
     else:
-        con = pg.connect(database = 'securities_master', user = 'postgres')
+        con = pg.connect(**conn_config)
         cur = con.cursor()
         
         if updated_table_name == valid_table_names[0]:
@@ -857,7 +856,7 @@ def db_update_bulk_prices(exchange_list = None):
 
 def remove_db_prices(instrument_id):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     command = f'DELETE FROM daily_price WHERE instrument_id = {instrument_id}'
@@ -871,7 +870,7 @@ def remove_db_prices(instrument_id):
 
 def db_update_adjusted_close(instrument_id, price_date, price_diff):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     command = (
@@ -972,7 +971,7 @@ def db_update_company_fundamentals(exchange_list = None):
     
 def eod_company_fundamentals_to_db(db_instruments_df, exch_id, exch_code):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     now = dt.datetime.now().strftime('%Y-%m-%d')
     
@@ -1148,7 +1147,7 @@ def eod_company_fundamentals_to_db(db_instruments_df, exch_id, exch_code):
             )
         
     print('\t100% complete.')          
-    con.commit()
+    con.commit() # Move this into the for loop? 
         
     cur.close()
     con.close()    
@@ -1156,7 +1155,7 @@ def eod_company_fundamentals_to_db(db_instruments_df, exch_id, exch_code):
 
 def get_db_company_general_info(exch_id = None):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     if exch_id is not None: 
@@ -1196,7 +1195,7 @@ def get_db_company_general_info(exch_id = None):
 
 def get_db_company_fundamentals(exch_id = None):
     
-    con = pg.connect(database = 'securities_master', user = 'postgres')
+    con = pg.connect(**conn_config)
     cur = con.cursor()
     
     if exch_id is not None: 
@@ -1273,11 +1272,11 @@ def error_log_file_creation():
 
 if __name__ == '__main__':
     
-    db_update_instruments()
+    # db_update_instruments()
     db_update_index_constituents()
-    db_update_bulk_prices(exchange_list = [1, 2, 8, 68])
-    db_update_fund_watchlist_data()
-    # db_update_company_fundamentals(exchange_list = [1, 2, 8])
+    # db_update_bulk_prices(exchange_list = [1, 2, 8, 68])
+    # db_update_fund_watchlist_data()
+    # db_update_company_fundamentals(exchange_list = [2])
 
 
     
@@ -1285,4 +1284,4 @@ if __name__ == '__main__':
             
     
     
-    error_log_file_creation()
+    # error_log_file_creation()

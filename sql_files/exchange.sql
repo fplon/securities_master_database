@@ -6,5 +6,7 @@ CREATE TABLE exchange (
 	country VARCHAR(50) NOT NULL,
 	currency VARCHAR(50) NOT NULL,
 	created_date DATE NOT NULL, 
-	last_update_date DATE NOT NULL
+	last_update_date DATE NOT NULL,
+	last_price_update_date DATE NOT NULL, 
+	last_fundamental_update_date DATE NOT NULL
 );

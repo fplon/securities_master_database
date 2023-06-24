@@ -1,0 +1,7 @@
+requests
+pandas
+numpy
+psycopg2
+pymongo
+matplotlib # dev
+pytest

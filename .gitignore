@@ -1,0 +1,8 @@
+config/eod_config.py
+config/db_config.py
+.venv
+*.pyc
+__pycache__/
+error_log.log
+review.py
+.vscode/
