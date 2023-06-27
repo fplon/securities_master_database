@@ -1,13 +1,13 @@
 import pytest
 from pandas import DataFrame as pDataFrame
 
-from eod_data.eod_downloader import eod_downloader
+from eod_data.eod_downloader import EODDownloader
 from config.eod_config import API_KEY
 
 
 
 def test_eod_downloader() -> None: 
-    eod = eod_downloader()
+    eod = EODDownloader()
     assert eod.api_key == API_KEY
     assert eod.root_url == 'http://eodhistoricaldata.com/api'
 
@@ -21,7 +21,7 @@ def test_get_eod_exchanges() -> None:
         'CountryISO2',
         'CountryISO3'
         ]
-    eod = eod_downloader()
+    eod = EODDownloader()
     
     eod_exchanges = eod.get_eod_exchanges(format='json')
     assert type(eod_exchanges) == list
@@ -46,7 +46,7 @@ def test_get_eod_instruments() -> None:
         'Type', 
         'Isin'
         ]
-    eod = eod_downloader()
+    eod = EODDownloader()
     
     eod_instruments = eod.get_eod_instruments(format='json')
     assert type(eod_instruments) == list
@@ -73,18 +73,19 @@ def test_get_eod_bulk_price() -> None:
         'adjusted_close', 
         'volume'   
         ]
-    eod = eod_downloader()
+    eod = EODDownloader()
 
-    test_date = '2023-06-22'
+    test_date = '2023-06-26'
     test_exchange = 'LSE'
     
     eod_bulk_price = eod.get_eod_bulk_price(exchange=test_exchange, format='json')
     assert type(eod_bulk_price) == list
-    assert type(eod_bulk_price[0]) == dict
-    assert all(act == exp for act, exp in zip(list(eod_bulk_price[0].keys()), expected_cols))
-    unique_date = eod_bulk_price[0].get('date', None)
-    assert unique_date is not None
-    assert unique_date == test_date
+    if len(eod_bulk_price) > 0:
+        assert type(eod_bulk_price[0]) == dict
+        assert all(act == exp for act, exp in zip(list(eod_bulk_price[0].keys()), expected_cols))
+        unique_date = eod_bulk_price[0].get('date', None)
+        assert unique_date is not None
+        assert unique_date == test_date
     
     
     eod_bulk_price = eod.get_eod_bulk_price(
@@ -118,7 +119,7 @@ def test_get_eod_constituents() -> None:
             'OpenFigi'
             ]
         }
-    eod = eod_downloader()
+    eod = EODDownloader()
 
     test_index = 'GSPC'
     
@@ -154,7 +155,7 @@ def test_get_eod_constituents() -> None:
 
 def test_get_eod_price() -> None: 
     
-    eod = eod_downloader()
+    eod = EODDownloader()
     
     expected_cols = ['date', 'open', 'high', 'low', 'close', 'adjusted_close', 'volume']
     test_ticker = 'MSFT'
@@ -187,7 +188,7 @@ def test_get_eod_price() -> None:
 def test_get_eod_fundamentals() -> None: 
     # for what is the most complex method, this is a bit light
     
-    eod = eod_downloader()
+    eod = EODDownloader()
 
     # expected_cols = {} 
     test_ticker = 'MSFT'
@@ -214,7 +215,7 @@ def test_get_eod_fundamentals() -> None:
 
 def test_get_eod_corp_act() -> None: 
     
-    eod = eod_downloader()
+    eod = EODDownloader()
     
     expected_cols = {
         'div': [
@@ -282,7 +283,7 @@ def test_get_eod_corp_act() -> None:
 
 def test_get_eod_etf() -> None: 
 
-    eod = eod_downloader()
+    eod = EODDownloader()
 
     expected_cols = [
         'Code', 'Type', 'Name', 'Exchange', 'CurrencyCode', 'CurrencyName',

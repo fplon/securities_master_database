@@ -1,6 +1,7 @@
 from logging import config, getLogger
 
-from eod_data.eod_downloader import eod_downloader
+from eod_data.eod_downloader import EODDownloader
+from db_downloader.db_downloader import DatabaseConnector
 from config.log_config import LOG_CONFIG
 
 config.dictConfig(LOG_CONFIG)
@@ -15,10 +16,10 @@ if __name__ == '__main__':
     # db_update_company_fundamentals(exchange_list = [2])
 
     try: 
-        eod = eod_downloader()
+        # eod = EODDownloader()
         # eod_exchanges = eod.get_eod_exchanges(format='df')
         # eod_instruments = eod.get_eod_instruments(exchange='LSE', format='df')
-        # eod_bulk_price = eod.get_eod_bulk_price('LSE', format='df')
+        # eod_bulk_price = eod.get_eod_bulk_price('US', format='json')
         # eod_constituents, eod_index_info = eod.get_eod_constituents('GSPC', format='json')
         # eod_price = eod.get_eod_price('MSFT', 'US', format = 'json')
         # (
@@ -35,7 +36,14 @@ if __name__ == '__main__':
         # ) = eod.get_eod_fundamentals('MSFT', 'US', format='df')
         # eod_div = eod.get_eod_corp_act('BP', 'LSE', corp_act_type='div', format='df')
         # eod_splits = eod.get_eod_corp_act('BP', 'LSE', corp_act_type='splits', format='df')
-        eod_etf = eod.get_eod_etf('VTI', 'US', format='df')
+        # eod_etf = eod.get_eod_etf('VTI', 'US', format='df')
+
+        with DatabaseConnector() as db_conn: 
+            # db_exchange = db_conn.get_db_table('exchange')
+            db_price = db_conn.get_db_price(
+                instrument_id=1, price_date='2021-08-07', include_ticker=True
+                )
+
     
     except: 
         logger.exception('Failed to download data.')

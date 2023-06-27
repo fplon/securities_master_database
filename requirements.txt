@@ -3,4 +3,4 @@ pandas
 numpy
 psycopg2
 pymongo
-matplotlib # dev
+sqlalchemy

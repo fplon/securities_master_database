@@ -3,7 +3,6 @@ import json
 import pandas as pd
 import datetime as dt
 import logging
-# from typing import Tuple
 
 from config.eod_config import API_KEY
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 # TODO: change "format" to another word
 # TODO: decide whether to return empty object or throw error
 
-class eod_downloader: 
+class EODDownloader: 
 
     def __init__(self) -> None: 
         self.api_key = API_KEY
