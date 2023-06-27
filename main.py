@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 if __name__ == '__main__':
     
     # db_update_instruments()
-    # db_update_index_constituents()
+    # db_update_index_constituents() 
     # db_update_bulk_prices(exchange_list = [1, 2, 8, 68])
     # db_update_fund_watchlist_data()
     # db_update_company_fundamentals(exchange_list = [2])
@@ -39,11 +39,20 @@ if __name__ == '__main__':
         # eod_etf = eod.get_eod_etf('VTI', 'US', format='df')
 
         with DatabaseConnector() as db_conn: 
-            # db_exchange = db_conn.get_db_table('exchange')
-            db_price = db_conn.get_db_price(
-                instrument_id=1, price_date='2021-08-07', include_ticker=True
-                )
+            # db_exchanges = db_conn.get_db_table('exchange')
+            # db_exchanges = db_conn.get_db_table('exchang')
+            # db_table = db_conn.get_db_fund_watchlist()
+            # db_table = db_conn.get_db_instruments()
+            # db_table = db_conn.get_db_indices()
 
+            db_price = db_conn.get_db_price(
+                instrument_id=12490, price_date='2021-04-29', include_ticker=True
+                )
+            # db_price = db_conn.get_db_price(
+            #     instrument_id=12490, price_date='2021-04-29'
+            #     )
+            # db_price = db_conn.get_db_price(instrument_id=12490)
+            # db_price = db_conn.get_db_price(price_date='2021-04-29')
     
     except: 
         logger.exception('Failed to download data.')

@@ -5,7 +5,6 @@ from eod_data.eod_downloader import EODDownloader
 from config.eod_config import API_KEY
 
 
-
 def test_eod_downloader() -> None: 
     eod = EODDownloader()
     assert eod.api_key == API_KEY

@@ -1,4 +1,4 @@
-import psycopg2 as pg
+# import psycopg2 as pg
 import pandas as pd
 import logging
 from sqlalchemy import create_engine
@@ -122,7 +122,7 @@ class DatabaseConnector:
 
         select_query = 'SELECT * FROM daily_price'
         instrument_filter = f' WHERE instrument_id = {instrument_id}'
-        date_filter = f' WHERE price_date = "{price_date}"'
+        date_filter = f' WHERE price_date = \'{price_date}\''
         ticker_join = ''
 
         if include_ticker: 
