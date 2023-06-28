@@ -60,6 +60,31 @@ def test_get_eod_instruments() -> None:
         eod.get_eod_instruments(format='str')
 
 
+def test_get_eod_indices() -> None: 
+    expected_cols = [
+        'Code', 
+        'Name', 
+        'Country', 
+        'Exchange', 
+        'Currency', 
+        'Type', 
+        'Isin'
+        ]
+    eod = EODDownloader()
+    
+    eod_instruments = eod.get_eod_indices(format='json')
+    assert type(eod_instruments) == list
+    assert type(eod_instruments[0]) == dict
+    assert all(act == exp for act, exp in zip(list(eod_instruments[0].keys()), expected_cols))
+    
+    eod_instruments = eod.get_eod_indices(format='df')
+    assert type(eod_instruments) == pDataFrame
+    assert all(act == exp for act, exp in zip(eod_instruments.columns, expected_cols))
+
+    with pytest.raises(ValueError):
+        eod.get_eod_indices(format='str')
+
+
 def test_get_eod_bulk_price() -> None: 
     expected_cols = [
         'code', 

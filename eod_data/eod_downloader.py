@@ -280,11 +280,11 @@ class EODDownloader:
 
 
     def get_eod_instruments(
-            self, exchange: str = 'INDX', format: str = 'df') -> pd.DataFrame | list: 
+            self, exchange: str, format: str = 'df') -> pd.DataFrame | list: 
         """Gets the instruments (assets) for a given exchange. 
 
         Args:
-            exchange (str, optional): Code for the exchange. Defaults to 'INDX'.
+            exchange (str, optional): Code for the exchange. 
             format (str, optional): Output style. Defaults to 'df'.
 
         Raises:
@@ -313,6 +313,20 @@ class EODDownloader:
         
         else: 
             raise ValueError('Not a valid output format')
+        
+
+    def get_eod_indices(self, format: str = 'df') -> pd.DataFrame | list:
+        """Special case of 'get_eod_instruments' that gets available indices. 
+            INDX does not appear in EOD HD's list of exchanges.
+
+        Args:
+            format (str, optional): Output style. Defaults to 'df'.
+            
+        Returns:
+            pd.DataFrame | list: Indices
+        """
+
+        return self.get_eod_instruments(exchange='INDX', format=format)
 
 
     def get_eod_price(
