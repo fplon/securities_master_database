@@ -1,0 +1,9 @@
+CREATE TABLE index (
+	id BIGSERIAL NOT NULL PRIMARY KEY,
+	ticker VARCHAR(50) NOT NULL,
+	name VARCHAR(200) NOT NULL,
+    country VARCHAR(50) NOT NULL,
+	currency VARCHAR(50) NOT NULL,
+	created_date DATE NOT NULL, 
+	last_update_date DATE NOT NULL
+);

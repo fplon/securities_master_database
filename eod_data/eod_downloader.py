@@ -239,7 +239,7 @@ class EODDownloader:
                         f'{ticker}.{exchange} has no fundamental data. Returned empty df.'
                         )
                     return pd.DataFrame()
-                return pd.DataFrame.from_dict(eod_dict).T.set_index('date')
+                return pd.DataFrame.from_dict(eod_dict).T#.set_index('date')
 
             eod_earnings_qtr = _dict_to_df(eod_earnings_qtr)
             eod_earnings_trend = _dict_to_df(eod_earnings_trend)
@@ -370,8 +370,8 @@ class EODDownloader:
             elif format == 'df': 
                 eod_price = pd.read_json(data)
                 
-                if eod_price.shape[0] > 0: 
-                    eod_price.set_index('date', inplace=True)
+                # if eod_price.shape[0] > 0: 
+                #     eod_price.set_index('date', inplace=True)
             
             # TODO: handler for ticker, exchange mismatch
             return eod_price
