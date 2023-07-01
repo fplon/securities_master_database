@@ -4,11 +4,12 @@ import logging
 import datetime as dt
 
 from config.db_config import CONN_CONF
+from db_connection.db_connector import DatabaseConnector
 
 
 logger = logging.getLogger(__name__)
 
-class DatabaseDownloader:
+class DatabaseDownloader(DatabaseConnector):
 
     def __init__(self) -> None: 
         super().__init__()
@@ -100,10 +101,18 @@ class DatabaseDownloader:
             return self.get_db_table_from_query(query=query)
         # db_instruments_df.set_index('id', inplace = True) # TODO? 
 
-    def get_db_price(
-        self, instrument_id: int | None = None, 
-        price_date: str | None = None, 
-        include_ticker: bool = False) -> pd.DataFrame:
+
+    def get_db_price(self, query_params: dict) -> pd.DataFrame:
+
+        query = self._generate_price_sql_query(query_params)
+        return self.get_db_table_from_query(query=query)
+    
+    
+    def _generate_price_sql_query(self, query_params) -> str:
+
+        instrument_id = query_params.get('instrument_id', None)
+        price_date = query_params.get('price_date', None)
+        include_ticker = query_params.get('include_ticker', False)
 
         select_query = 'SELECT * FROM daily_price'
         instrument_filter = f' WHERE instrument_id = {instrument_id}'
@@ -127,4 +136,5 @@ class DatabaseDownloader:
                 f'{instrument_filter.replace("WHERE", "AND")}'
             )
 
-        return self.get_db_table_from_query(query=query)
+        return query 
+    

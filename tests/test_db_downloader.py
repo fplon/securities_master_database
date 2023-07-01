@@ -126,7 +126,8 @@ def test_get_db_price() -> None:
     expected_cols_w_join = expected_cols + ['ticker']
 
     with DatabaseDownloader() as db_conn: 
-        db_table = db_conn.get_db_price(price_date='2021-04-29')
+        query_params = {'price_date': '2021-04-29'}
+        db_table = db_conn.get_db_price(query_params)
         assert type(db_table) == pDataFrame
         assert all(
             act == exp for act, exp 
@@ -135,7 +136,8 @@ def test_get_db_price() -> None:
         assert db_table.shape[0] == len(db_table['id'].unique())
 
     with DatabaseDownloader() as db_conn: 
-        db_table = db_conn.get_db_price(instrument_id=12490)
+        query_params = {'instrument_id': 12490}
+        db_table = db_conn.get_db_price(query_params)
         assert type(db_table) == pDataFrame
         assert all(
             act == exp for act, exp 
@@ -144,9 +146,8 @@ def test_get_db_price() -> None:
         assert db_table.shape[0] == len(db_table['id'].unique())
         
     with DatabaseDownloader() as db_conn: 
-        db_table = db_conn.get_db_price(
-            instrument_id=12490, price_date='2021-04-29'
-            )
+        query_params = {'instrument_id': 12490, 'price_date': '2021-04-29'}
+        db_table = db_conn.get_db_price(query_params)
         assert type(db_table) == pDataFrame
         assert all(
             act == exp for act, exp 
@@ -155,10 +156,12 @@ def test_get_db_price() -> None:
         assert db_table.shape[0] == len(db_table['id'].unique())
 
     with DatabaseDownloader() as db_conn: 
-        db_table = db_conn.get_db_price(
-            instrument_id=12490, price_date='2021-04-29',
-            include_ticker=True
-            )
+        query_params = {
+                'instrument_id': 12490, 
+                'price_date': '2021-04-29', 
+                'include_ticker': True
+                }
+        db_table = db_conn.get_db_price(query_params)
         assert type(db_table) == pDataFrame
         assert all(
             act == exp for act, exp 

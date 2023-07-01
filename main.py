@@ -3,6 +3,7 @@ from logging import config, getLogger
 from eod_data.eod_downloader import EODDownloader
 from db_connection.db_connector import DatabaseConnector
 from db_connection.db_uploader import DatabaseUploader
+from db_connection.db_downloader import DatabaseDownloader
 from config.log_config import LOG_CONFIG
 
 config.dictConfig(LOG_CONFIG)
@@ -40,28 +41,35 @@ if __name__ == '__main__':
         # eod_splits = eod.get_eod_corp_act('BP', 'LSE', corp_act_type='splits', format='df')
         # eod_etf = eod.get_eod_etf('VTI', 'US', format='df')
 
-        # with DatabaseConnector() as db_conn: 
+        with DatabaseDownloader() as db_conn: 
             # db_exchanges = db_conn.get_db_table('exchange')
             # db_exchanges = db_conn.get_db_table('exchang')
             # db_table = db_conn.get_db_fund_watchlist()
             # db_table = db_conn.get_db_instruments()
             # db_table = db_conn.get_db_indices()
 
-            # db_price = db_conn.get_db_price(
-            #     instrument_id=12490, price_date='2021-04-29', include_ticker=True
-            #     )
-            # db_price = db_conn.get_db_price(
-            #     instrument_id=12490, price_date='2021-04-29'
-            #     )
-            # db_price = db_conn.get_db_price(instrument_id=12490)
-            # db_price = db_conn.get_db_price(price_date='2021-04-29')
+            # query_params = {'instrument_id': 12490}
+            # db_price = db_conn.get_db_price(query_params)
 
-        with DatabaseUploader() as db_up: 
-            logger.info(db_up.database)
-            logger.info(db_up.host)
-            logger.info(db_up.user)
-            logger.info(db_up.password)
-            logger.info(type(db_up.engine))
+            # query_params = {'price_date': '2021-04-29'}
+            # db_price = db_conn.get_db_price(query_params)
+
+            # query_params = {'instrument_id': 12490, 'price_date': '2021-04-29'}
+            # db_price = db_conn.get_db_price(query_params)
+
+            query_params = {
+                'instrument_id': 12490, 
+                'price_date': '2021-04-29', 
+                'include_ticker': True
+                }
+            db_price = db_conn.get_db_price(query_params)
+            
+        # with DatabaseUploader() as db_up: 
+            # logger.info(db_up.database)
+            # logger.info(db_up.host)
+            # logger.info(db_up.user)
+            # logger.info(db_up.password)
+            # logger.info(type(db_up.engine))
             # db_up.update_db_exchanges(exchanges=eod_exchanges)
             # db_up.update_db_instruments(instruments=eod_instruments, db_exchange_id=1)
             # db_up.update_db_indices(indices=eod_indices)
@@ -76,7 +84,7 @@ if __name__ == '__main__':
             # db_up.update_income_statement_yr(eod_income_statement_yr, 30252)
             # db_up.update_cash_flow_qtr(eod_cash_flow_qtr, 30252)
             # db_up.update_cash_flow_yr(eod_cash_flow_yr, 30252)
-            db_up.update_fundamentals_snapshot(eod_fundamentals_snapshot, 30252)
+            # db_up.update_fundamentals_snapshot(eod_fundamentals_snapshot, 30252)
 
 
     
