@@ -1,28 +1,30 @@
-import pytest
-import pathlib
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+# import pytest
+# import pathlib
+# from sqlalchemy import create_engine
+# from sqlalchemy.orm import sessionmaker
 
-from db_connection.db_uploader import DatabaseUploader
-from config.db_config import CONN_CONF_TEST
-from utils.strings import get_sql_string_from_file
+# from db_connection.db_uploader import DatabaseUploader
+# from config.db_config import CONN_CONF_TEST
+# from utils.strings import get_sql_string_from_file
 
-ROOT_PATH = str(pathlib.Path(__file__).parent.parent)
+# ROOT_PATH = str(pathlib.Path(__file__).parent.parent)
 
 # TODO - more background on this required (pytest, mocks) ...
 
-@pytest.mark.database
+# @pytest.mark.database
 def test_database_write():
 
-    with DatabaseUploader(conn_config=CONN_CONF_TEST) as db_conn: 
+    assert False
+
+    # with DatabaseUploader(conn_config=CONN_CONF_TEST) as db_conn: 
         
-        # Session = sessionmaker(bind=db_conn.engine)
-        # session = Session()
-        con = db_conn.engine.connect()
+    #     # Session = sessionmaker(bind=db_conn.engine)
+    #     # session = Session()
+    #     con = db_conn.engine.connect()
 
-        con.execute(f'CREATE DATABASE securities_master_test')
+    #     con.execute(f'CREATE DATABASE securities_master_test')
 
-        con.execute(get_sql_string_from_file(f'{ROOT_PATH}/sql_files/exchange.sql'))
+    #     con.execute(get_sql_string_from_file(f'{ROOT_PATH}/sql_files/exchange.sql'))
         # Perform the database write operation
         # ...
         # Your code to test the database write operation goes here

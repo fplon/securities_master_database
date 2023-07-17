@@ -29,3 +29,6 @@ LOG_CONFIG = {
     },
     'disable_existing_loggers': False
 }
+
+def disable_third_party_loggers(): 
+    logging.getLogger('urllib3').setLevel(logging.CRITICAL+1)

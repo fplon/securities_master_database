@@ -89,8 +89,31 @@ class DatabaseDownloader(DatabaseConnector):
     def get_db_indices(self) -> pd.DataFrame: 
 
         # db_indices_df.set_index('id', inplace = True) # TODO?
-        return self.get_db_table('benchmark_index')
+        return self.get_db_table('index')
+    
+    
+    def map_db_index_id_from_index_code(self, index_ticker: str | list) -> str | list:
 
+        if isinstance(index_ticker, str):
+            index_ticker = [index_ticker]
+
+        index_ticker =  ','.join([f'\'{ticker}\'' for ticker in index_ticker])
+        query = f'SELECT id FROM index WHERE ticker IN ({index_ticker})'
+        return self.get_db_table_from_query(query=query)
+    
+    # TODO: refactor this shite
+    def get_db_constituents(self, index_id: int | list | None) -> pd.DataFrame: 
+
+        table = 'index_constituents'
+        if isinstance(index_id, int): 
+            index_id = [index_id]
+
+        if index_id is None: 
+            return self.get_db_table(table)
+        elif isinstance(index_id, list):
+            index_id = ','.join([f'\'{id}\'' for id in index_id])
+            query = f'SELECT * FROM {table} WHERE index_id IN ({index_id})'
+            return self.get_db_table_from_query(query=query)
 
     def get_db_instruments(self, exchange_id: int | None = None) -> pd.DataFrame: 
 
